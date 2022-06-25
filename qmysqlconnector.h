@@ -17,7 +17,8 @@ class QMySqlConnector : public QObject
 public:
     explicit QMySqlConnector(QObject *parent = nullptr);
     virtual ~QMySqlConnector();
-    void open();
+    bool open();
+    bool close();
     void query(const QString &sqlquery);
     bool next();
     int getInt(int columnIndex) const;
@@ -44,12 +45,18 @@ public:
     {
         m_conInfo = conInfo;
     }
+
+    bool isConnected() const
+    {
+        return m_connected;
+    }
 private:
     QMySqlConnectionInfo m_conInfo;
     sql::Driver *m_driver;
     sql::Connection *m_con;
     sql::Statement *m_stmt;
     sql::ResultSet *m_res;
+    bool m_connected;
 };
 
 #endif // QMYSQLCONNECTOR_H

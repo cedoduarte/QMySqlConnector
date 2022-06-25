@@ -24,7 +24,14 @@ public:
 private slots:
     void on_buttonBox_accepted();
     void on_buttonBox_rejected();
+    void on_txtHost_textEdited(const QString &txt);
+    void on_txtDatabaseName_textEdited(const QString &txt);
+    void on_txtUsername_textEdited(const QString &txt);
+    void on_txtPassword_textEdited(const QString &txt);
+    void on_spinnerPort_valueChanged(int value);
 private:
+    void loadSettings();
+
     Ui::MySqlConnectionDialog *ui;
     QMySqlConnectionInfo m_conInfo;
 };

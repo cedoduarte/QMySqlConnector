@@ -9,19 +9,15 @@ QMySqlConnector::QMySqlConnector(QObject *parent)
     m_con = nullptr;
     m_stmt = nullptr;
     m_res = nullptr;
+    m_connected = false;
 }
 
 QMySqlConnector::~QMySqlConnector()
 {
-    delete m_res;
-    delete m_stmt;
-    delete m_con;
-    m_res = nullptr;
-    m_stmt = nullptr;
-    m_con = nullptr;
+    // nothing to do here
 }
 
-void QMySqlConnector::open()
+bool QMySqlConnector::open()
 {
     try
     {
@@ -32,13 +28,35 @@ void QMySqlConnector::open()
                                   sql::SQLString(m_conInfo.m_password.toStdString()));
         m_con->setSchema(sql::SQLString(m_conInfo.m_databaseName.toStdString()));
         m_stmt = m_con->createStatement();
+        m_connected = true;
     }
     catch (sql::SQLException &e)
     {
         qDebug() << e.what() << __FILE__ << __LINE__;
         qDebug() << e.getErrorCode() << __FILE__ << __LINE__;
         qDebug() << e.getSQLState().c_str() << __FILE__ << __LINE__;
+        m_connected = false;
     }
+    return m_connected;
+}
+
+bool QMySqlConnector::close()
+{
+    try
+    {
+        m_con->close();
+        delete m_con;
+        m_con = nullptr;
+        m_driver->threadEnd();
+        m_connected = false;
+        return true;
+    }
+    catch (sql::SQLException &e)
+    {
+        qDebug() << e.what() << __FILE__ << __LINE__;
+        return false;
+    }
+    return false;
 }
 
 void QMySqlConnector::query(const QString &sqlquery)
@@ -72,7 +90,7 @@ bool QMySqlConnector::next()
 
 int QMySqlConnector::getInt(int columnIndex) const
 {
-    return m_res->getInt(columnIndex - 1);
+    return m_res->getInt(columnIndex + 1);
 }
 
 int QMySqlConnector::getInt(const QString &columnName) const
@@ -82,7 +100,7 @@ int QMySqlConnector::getInt(const QString &columnName) const
 
 qint64 QMySqlConnector::getInt64(int columnIndex) const
 {
-    return m_res->getInt64(columnIndex - 1);
+    return m_res->getInt64(columnIndex + 1);
 }
 
 qint64 QMySqlConnector::getInt64(const QString &columnName) const
@@ -92,7 +110,7 @@ qint64 QMySqlConnector::getInt64(const QString &columnName) const
 
 quint32 QMySqlConnector::getUInt(int columnIndex) const
 {
-    return m_res->getUInt(columnIndex - 1);
+    return m_res->getUInt(columnIndex + 1);
 }
 
 quint32 QMySqlConnector::getUInt(const QString &columnName) const
@@ -102,7 +120,7 @@ quint32 QMySqlConnector::getUInt(const QString &columnName) const
 
 quint64 QMySqlConnector::getUInt64(int columnIndex) const
 {
-    return m_res->getUInt64(columnIndex - 1);
+    return m_res->getUInt64(columnIndex + 1);
 }
 
 quint64 QMySqlConnector::getUInt64(const QString &columnName) const
@@ -112,7 +130,7 @@ quint64 QMySqlConnector::getUInt64(const QString &columnName) const
 
 double QMySqlConnector::getDouble(int columnIndex) const
 {
-    return m_res->getDouble(columnIndex - 1);
+    return m_res->getDouble(columnIndex + 1);
 }
 
 double QMySqlConnector::getDouble (const QString &columnName) const
@@ -132,7 +150,7 @@ float QMySqlConnector::getFloat(const QString &columnName) const
 
 bool QMySqlConnector::getBoolean(int columnIndex) const
 {
-    return m_res->getBoolean(columnIndex - 1);
+    return m_res->getBoolean(columnIndex + 1);
 }
 
 bool QMySqlConnector::getBoolean(const QString &columnName) const
@@ -142,7 +160,7 @@ bool QMySqlConnector::getBoolean(const QString &columnName) const
 
 QString QMySqlConnector::getString(int columnIndex) const
 {
-    return QString::fromStdString(m_res->getString(columnIndex - 1));
+    return QString::fromStdString(m_res->getString(columnIndex + 1));
 }
 
 QString QMySqlConnector::getString(const QString &columnName) const
@@ -152,7 +170,7 @@ QString QMySqlConnector::getString(const QString &columnName) const
 
 QDate QMySqlConnector::getDate(int columnIndex) const
 {
-    return QDate::fromString(QString::fromStdString(m_res->getString(columnIndex - 1)));
+    return QDate::fromString(QString::fromStdString(m_res->getString(columnIndex + 1)));
 }
 
 QDate QMySqlConnector::getDate(const QString &columnName) const
